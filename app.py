@@ -15,12 +15,8 @@ responses = []
 @app.get('/')
 def start_page():
     """Root route. It renders survey_start.html template"""
-    survey_title = survey.title
-    survey_instructions = survey.instructions
-# TODO: send the whole survey to template
-    return render_template('survey_start.html',
-                           survey_title=survey_title,
-                           survey_instructions=survey_instructions)
+
+    return render_template('survey_start.html', survey = survey)
 
 
 @app.post('/begin')
@@ -33,24 +29,20 @@ def begin_survey():
 
 
 @app.get('/question/<int:index>')
-# TODO: Change function name
-def get_first_question(index):
+def get_question(index):
     """Renders the question at current route's index"""
 
     question = survey.questions[index]
+    if index > len(responses):
+        return redirect("/")
 
-    return render_template("question.html",
-                           question=question,
-                           index=index)
-
-# TODO use /answer
+    return render_template("question.html", question=question)
 
 
-@app.post("/answer/<int:index>")
-def get_answer(index):
+@app.post("/answer")
+def get_answer():
     """Gets form data and appends it to the resposes variable.
     Checks if the survey is complete and redirects accordingly"""
-
     answer = request.form["answer"]
     responses.append(answer)
 
@@ -58,7 +50,7 @@ def get_answer(index):
         return redirect("/completion")
 
     else:
-        return redirect(f"/question/{index+1}")
+        return redirect(f"/question/{len(responses)}")
 
 
 @app.get("/completion")
