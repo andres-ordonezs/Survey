@@ -9,21 +9,20 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 debug = DebugToolbarExtension(app)
 
-responses = []
-
 
 @app.get('/')
 def start_page():
     """Root route. It renders survey_start.html template"""
 
-    return render_template('survey_start.html', survey = survey)
+    return render_template('survey_start.html', survey=survey)
 
 
 @app.post('/begin')
 def begin_survey():
     """Redirects to first question in the survey and clears the
     response variable"""
-    responses.clear()
+
+    session['responses'] = []
 
     return redirect('/question/0')
 
@@ -32,9 +31,15 @@ def begin_survey():
 def get_question(index):
     """Renders the question at current route's index"""
 
+    if len(session['responses']) == len(survey.questions):
+        flash('You have already completed the survey!')
+        return redirect("/completion")
+
+    if index != len(session['responses']):
+        flash("No time travel allowed!")
+        return redirect(f"/question/{len(session['responses'])}")
+
     question = survey.questions[index]
-    if index > len(responses):
-        return redirect("/")
 
     return render_template("question.html", question=question)
 
@@ -44,13 +49,16 @@ def get_answer():
     """Gets form data and appends it to the resposes variable.
     Checks if the survey is complete and redirects accordingly"""
     answer = request.form["answer"]
-    responses.append(answer)
 
-    if len(responses) == len(survey.questions):
+    answers = session['responses']
+    answers.append(answer)
+    session['responses'] = answers
+
+    if len(session['responses']) == len(survey.questions):
         return redirect("/completion")
 
     else:
-        return redirect(f"/question/{len(responses)}")
+        return redirect(f"/question/{len(session['responses'])}")
 
 
 @app.get("/completion")
@@ -62,4 +70,4 @@ def show_completion():
 
     return render_template("completion.html",
                            questions=questions,
-                           responses=responses)
+                           responses=session['responses'])
