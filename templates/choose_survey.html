@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>Choose a Survey</h1>
+
+<!--
+    DO NOT CHANGE THE FORM ACTION OR METHOD
+    You'll need to write the applicable code to handle this request
+   -->
+<form action="/get_survey" method="POST">
+  <select name="survey">
+    {% for key in surveys %}
+      <option value="{{key}}">{{key}}</option>
+    {% endfor %}
+  </select>
+  <button>Start!</button>
+</form>
+
+{% endblock %}
